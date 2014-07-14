@@ -1,1 +1,1 @@
-Just having some fun with data and the amazing [d3 library](www.d3js.org).
+Just having some fun with data and the amazing [d3 library](http://www.d3js.org).
