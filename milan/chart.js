@@ -16,6 +16,7 @@
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 	function generateColors(luminance=60, croma=60, offset=0) {
+		// http://bl.ocks.org/nitaku/8566245
 		var colors = [];
 		for (var i = 0; i < 20; i++) {
 			colors.push(d3.hcl((i*18+offset)%360, croma, luminance));
