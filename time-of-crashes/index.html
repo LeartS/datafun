@@ -3,14 +3,41 @@
 	<meta charset="utf-8">
 	<title>Day and Time of Fatal Crashes - USA</title>
 	<link type="text/css" rel="stylesheet" href="style.css" />
-	<script src="../vendor/d3/d3.min.js" charset="utf-8">
-	</script>
+	<script src="../vendor/d3/d3.min.js" charset="utf-8"></script>
+	<script src="../vendor/queue/queue.min.js"></script>
   </head>
   <body>
 	<div id="chart_area">
 	</div>
 	<script type="text/javascript" src="chart.js"></script>
 	<script type="text/javascript">
+		days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		
+		function tsv(year, callback) {
+			d3.tsv('data/' + year + '.tsv', function(row) {
+				var hourData = [];
+				days.forEach(function(day) {
+					hourData.push({
+						'hour': row.FieldDesc,
+						'weekday': day,
+						'year': year,
+						'crashes': row[day]
+					});
+				});
+				return hourData;
+			}, function(rows) {
+				flattenedRows = rows.reduce(function(a, b) { return a.concat(b); });
+				rows ? callback(null, flattenedRows) : callback('error', flattenedRows);
+			});
+		}
+		var q = queue()
+		for (var i = 2006; i < 2013; i++) {
+			q.defer(tsv, i);
+		}
+		q.awaitAll(function(error, data) {
+			flattenedData = data.reduce(function(a, b) { return a.concat(b); });
+			console.log(flattenedData);
+		});
 	</script>
   </body>
 </html>
