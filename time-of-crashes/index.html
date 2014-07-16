@@ -11,12 +11,10 @@
 	</div>
 	<script type="text/javascript" src="chart.js"></script>
 	<script type="text/javascript">
-		days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		
 		function tsv(year, callback) {
 			d3.tsv('data/' + year + '.tsv', function(row) {
 				var hourData = [];
-				days.forEach(function(day) {
+				charter.days.forEach(function(day) {
 					hourData.push({
 						'hour': row.FieldDesc,
 						'weekday': day,
@@ -36,7 +34,7 @@
 		}
 		q.awaitAll(function(error, data) {
 			flattenedData = data.reduce(function(a, b) { return a.concat(b); });
-			console.log(flattenedData);
+			charter.go(flattenedData);
 		});
 	</script>
   </body>
