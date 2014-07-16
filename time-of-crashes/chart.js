@@ -54,6 +54,33 @@
 			.entries(dataset);
 
 		// Scales
+		var xDays = d3.scale.ordinal()
+			.domain(d3.range(7))
+			.rangeBands([0, width]);
+		var xHours = d3.scale.ordinal()
+			.domain(d3.range(10))
+			.rangeBands([0, (width-50)/charter.days.length], 0.1, 1);
+		var y = d3.scale.linear()
+			.domain([0, 2000])
+			.range([height, 0]);
+
+		var years = canvas.selectAll('.year').data([series[0]]).enter()
+			.append('g').attr('class', 'year');
+		years.selectAll('.bar').data(function(d) {
+			return d.values.filter(function(dd) { return dd.hour != 'Total'; });
+		}).enter()
+			.append('rect')
+			.attr({
+				'class': 'bar',
+				'x': function(dd) {
+					var xd = xDays(charter.days.indexOf(dd.weekday));
+					var xh = xHours(charter.hours.indexOf(dd.hour));
+					return xd + xh;
+				},
+				'y': function(dd) { return y(dd.crashes); },
+				'height': function(dd) { return height - y(dd.crashes); },
+				'width': xHours.rangeBand(),
+			});
 	}
 
 })();
