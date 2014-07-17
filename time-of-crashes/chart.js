@@ -64,6 +64,12 @@
 			.domain([0, 2000])
 			.range([height, 0]);
 
+		// Axis
+		var yAxis = d3.svg.axis()
+			.scale(y)
+			.outerTickSize(1)
+			.orient('left');
+
 		var years = canvas.selectAll('.year').data([series[0]]).enter()
 			.append('g').attr('class', 'year');
 		years.selectAll('.bar').data(function(d) {
@@ -81,6 +87,11 @@
 				'height': function(dd) { return height - y(dd.crashes); },
 				'width': xHours.rangeBand(),
 			});
-	}
 
+		canvas.append('g')
+			.attr({
+				'class': 'y axis',
+				// 'transform': 'translate(' + (width+5) + ',0)',
+			}).call(yAxis);
+	}
 })();

@@ -1,13 +1,36 @@
+body {
+	background: gray;
+}
+
+#chart_area {
+	width: 90%;
+	height: 90%;
+	margin: auto;
+}
+
 svg rect.bar {
 	fill: #666;
 }
 
-#chart_area {
-    width: 90%;
-    height: 90%;
-    margin: auto;
+svg rect.bar:hover {
+	fill: #999;
 }
 
-body {
-    background: gray;
+svg .axis {
+	stroke: #222;
+	stroke-width: 1px;
+	fill: none;
+}
+
+svg .axis .tick line {
+	stroke-width: 1px;
+}
+
+svg .axis path {
+	stroke-width: 1px;
+	fill: #222;
+}
+
+svg .axis text {
+	font-size: 11px;
 }
