@@ -26,7 +26,7 @@
 
 	var margin = {top: 20, right: 50, bottom: 30, left: 40},
 	    width = parseInt(container.style('width')) - margin.left - margin.right,
-	    height = parseInt(container.style('height')) - margin.top - margin.bottom;
+	    height =parseInt(container.style('height')) - margin.top - margin.bottom;
 
 	var transitionDuration = 400;
 
