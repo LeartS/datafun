@@ -1,3 +1,13 @@
 svg rect.bar {
 	fill: #666;
 }
+
+#chart_area {
+    width: 90%;
+    height: 90%;
+    margin: auto;
+}
+
+body {
+    background: gray;
+}

@@ -25,8 +25,8 @@
 	var container = d3.select('#chart_area');
 
 	var margin = {top: 20, right: 50, bottom: 30, left: 40},
-	    width = 1024 - margin.left - margin.right,
-	    height = 600 - margin.top - margin.bottom;
+	    width = parseInt(container.style('width')) - margin.left - margin.right,
+	    height = parseInt(container.style('height')) - margin.top - margin.bottom;
 
 	var transitionDuration = 400;
 
