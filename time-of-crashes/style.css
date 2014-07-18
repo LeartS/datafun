@@ -17,20 +17,18 @@ svg rect.bar:hover {
 }
 
 svg .axis {
-	stroke: #222;
-	stroke-width: 1px;
-	fill: none;
-}
-
-svg .axis .tick line {
-	stroke-width: 1px;
-}
-
-svg .axis path {
-	stroke-width: 1px;
+	/* stroke: #222; */
+	stroke-width: 1;
 	fill: #222;
 }
 
+svg .axis .tick line {
+	stroke-width: 1;
+}
+
+svg .axis path {
+}
+
 svg .axis text {
-	font-size: 11px;
+	font-size: 0.6em;
 }
