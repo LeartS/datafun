@@ -24,7 +24,7 @@
 
 	var container = d3.select('#chart_area');
 
-	var margin = {top: 20, right: 50, bottom: 30, left: 40},
+	var margin = {top: 20, right: 50, bottom: 60, left: 40},
 	    width = parseInt(container.style('width')) - margin.left - margin.right,
 	    height =parseInt(container.style('height')) - margin.top - margin.bottom;
 
@@ -73,6 +73,11 @@
 			.scale(xHours)
 			.outerTickSize(1)
 			.orient('bottom');
+		var xDaysAxis = d3.svg.axis()
+			.scale(xDays)
+			.tickFormat(function(i) { return charter.days[i];} )
+			.outerTickSize(0)
+			.orient('bottom');
 
 		var years = canvas.selectAll('.year').data([series[0]]).enter()
 			.append('g').attr('class', 'year');
@@ -103,7 +108,13 @@
 				'class': 'x axis',
 				'transform': function(d, i) {
 					return 'translate(' + i*xDays.rangeBand() + ',' + height + ')';
-				},
+				}
 			}).call(xHoursAxis);
+		canvas.selectAll('.d.axis').data([charter.days]).enter()
+			.append('g')
+			.attr({
+				'class': 'x axis',
+				'transform': 'translate(0,' + (height+30) +  ')',
+			}).call(xDaysAxis);
 	}
 })();
