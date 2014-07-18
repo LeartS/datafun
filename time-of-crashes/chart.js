@@ -69,6 +69,10 @@
 			.scale(y)
 			.outerTickSize(1)
 			.orient('left');
+		var xHoursAxis = d3.svg.axis()
+			.scale(xHours)
+			.outerTickSize(1)
+			.orient('bottom');
 
 		var years = canvas.selectAll('.year').data([series[0]]).enter()
 			.append('g').attr('class', 'year');
@@ -93,5 +97,13 @@
 				'class': 'y axis',
 				// 'transform': 'translate(' + (width+5) + ',0)',
 			}).call(yAxis);
+		canvas.selectAll('.x.axis').data(charter.days).enter()
+			.append('g')
+			.attr({
+				'class': 'x axis',
+				'transform': function(d, i) {
+					return 'translate(' + i*xDays.rangeBand() + ',' + height + ')';
+				},
+			}).call(xHoursAxis);
 	}
 })();
