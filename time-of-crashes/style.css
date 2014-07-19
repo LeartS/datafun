@@ -1,5 +1,27 @@
 body {
 	background: gray;
+	padding: 0;
+	margin: 0;
+}
+
+#year_switcher {
+	height: 30px;
+	/* width: 200px; */
+	line-height: 30px;
+	font-size: 2.2em;
+	text-align: center;
+	color: #333;
+	margin: 10px auto;
+}
+
+#year_switcher a {
+	text-decoration: none;
+	color: #333;
+}
+
+#year_switcher a:hover {
+	text-decoration: underline;
+	color: #666;
 }
 
 #chart_area {
