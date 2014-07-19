@@ -1,5 +1,8 @@
 (function() {
 	charter = {}; // namespace
+	charter.minYear = 2006;
+	charter.maxYear = 2012;
+	charter.year = 2012;
 	charter.days = [
 		'Monday',
 		'Tuesday',
@@ -31,77 +34,54 @@
 	var transitionDuration = 400;
 
 	var canvas = d3.select('#chart_area')
-		.append('svg')
+		.insert('svg', 'div')
 		.attr('width', width + margin.left + margin.right)
 		.attr('height', height + margin.top + margin.bottom)
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-	charter.go = function(dataset) {
+	// Chart elements
+	var series = []
+	var xDays = d3.scale.ordinal();
+	var xHours = d3.scale.ordinal();
+	var y = d3.scale.linear();
+	var xDaysAxis = d3.svg.axis();
+	var xHoursAxis = d3.svg.axis();
+	var yAxis = d3.svg.axis();
 
-		// Data manipulation
-		var series = d3.nest()
-			.key(function(d) { return d.year; })
-			.sortValues(function(a, b) {
-				d = charter.days;
-				h = charter.hours;
-				if (d.indexOf(a.weekday) == d.indexOf(b.weekday)) {
-					return h.indexOf(a.hour) > h.indexOf(b.hour);
-				} else {
-					return d.indexOf(a.weekday) > d.indexOf(b.weekday);
-				}
-			})
-			.entries(dataset);
-
-		// Scales
-		var xDays = d3.scale.ordinal()
+	function setScaleParams() {
+		xDays
 			.domain(d3.range(7))
 			.rangeBands([0, width]);
-		var xHours = d3.scale.ordinal()
+		xHours
 			.domain(d3.range(10))
 			.rangeBands([0, (width-50)/charter.days.length], 0.1, 1);
-		var y = d3.scale.linear()
+		y
 			.domain([0, 2000])
 			.range([height, 0]);
+	}
 
-		// Axis
-		var yAxis = d3.svg.axis()
-			.scale(y)
-			.outerTickSize(1)
-			.orient('left');
-		var xHoursAxis = d3.svg.axis()
-			.scale(xHours)
-			.outerTickSize(1)
-			.orient('bottom');
-		var xDaysAxis = d3.svg.axis()
+	function setAxisParams() {
+		xDaysAxis
 			.scale(xDays)
 			.tickFormat(function(i) { return charter.days[i];} )
 			.outerTickSize(0)
 			.orient('bottom');
+		xHoursAxis
+			.scale(xHours)
+			.outerTickSize(1)
+			.orient('bottom');
+		yAxis
+			.scale(y)
+			.outerTickSize(1)
+			.orient('left');
+	}
 
-		var years = canvas.selectAll('.year').data([series[0]]).enter()
-			.append('g').attr('class', 'year');
-		years.selectAll('.bar').data(function(d) {
-			return d.values.filter(function(dd) { return dd.hour != 'Total'; });
-		}).enter()
-			.append('rect')
-			.attr({
-				'class': 'bar',
-				'x': function(dd) {
-					var xd = xDays(charter.days.indexOf(dd.weekday));
-					var xh = xHours(charter.hours.indexOf(dd.hour));
-					return xd + xh;
-				},
-				'y': function(dd) { return y(dd.crashes); },
-				'height': function(dd) { return height - y(dd.crashes); },
-				'width': xHours.rangeBand(),
-			});
+	function getCurrentSeries() {
+		return series[charter.year - charter.minYear];
+	}
 
-		canvas.append('g')
-			.attr({
-				'class': 'y axis',
-				// 'transform': 'translate(' + (width+5) + ',0)',
-			}).call(yAxis);
+	function drawXAxis() {
 		canvas.selectAll('.x.axis').data(charter.days).enter()
 			.append('g')
 			.attr({
@@ -117,4 +97,83 @@
 				'transform': 'translate(0,' + (height+30) +  ')',
 			}).call(xDaysAxis);
 	}
+
+	function drawYAxis() {
+		canvas.append('g')
+			.attr({
+				'class': 'y axis',
+				// 'transform': 'translate(' + (width+5) + ',0)',
+			}).call(yAxis);
+	}
+
+	function drawSeries() {
+		canvas.selectAll('.year').data([getCurrentSeries()])
+			.enter()
+			.append('g')
+			.attr('class', 'year')
+			.selectAll('.bar').data(function(d) {
+				return d.values.filter(function(dd) { return dd.hour != 'Total'; });
+			})
+			.enter()
+			.append('rect')
+			.attr({
+				'class': 'bar',
+				'x': function(dd) {
+					var xd = xDays(charter.days.indexOf(dd.weekday));
+					var xh = xHours(charter.hours.indexOf(dd.hour));
+					return xd + xh;
+				},
+				'y': function(dd) { return y(dd.crashes); },
+				'height': function(dd) { return height - y(dd.crashes); },
+				'width': xHours.rangeBand(),
+			});
+		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
+	}
+
+	function setup() {
+		setScaleParams();
+		setAxisParams();
+	}
+
+	function draw() {
+		drawSeries();
+		drawXAxis();
+		drawYAxis();
+	}
+
+	function setCallbacks() {
+		d3.select('#year_switcher > #prev').on('click', function() {
+			changeYear(false);
+		});
+	}
+
+	charter.go = function(dataset) {
+		// Data manipulation
+		series = d3.nest()
+			.key(function(d) { return d.year; })
+			.sortKeys()
+			.sortValues(function(a, b) {
+				d = charter.days;
+				h = charter.hours;
+				if (d.indexOf(a.weekday) == d.indexOf(b.weekday)) {
+					return h.indexOf(a.hour) > h.indexOf(b.hour);
+				} else {
+					return d.indexOf(a.weekday) > d.indexOf(b.weekday);
+				}
+			})
+			.entries(dataset);
+		console.log(series);
+		setup();
+		draw();
+	}
+
+	// Callbacks
+	function changeYear(next=false) {
+		if (next && charter.year <= charter.maxYear) {
+			charter.year++;
+		} else if (!next && charter.year >= charter.minYear) {
+			charter.year--;
+		}
+	}
+
 })();
