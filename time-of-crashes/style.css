@@ -2,6 +2,7 @@ body {
 	background: gray;
 	padding: 0;
 	margin: 0;
+	font-family: 'Oswald', sans-serif;
 }
 
 #year_switcher {
@@ -52,5 +53,5 @@ svg .axis path {
 }
 
 svg .axis text {
-	font-size: 0.6em;
+	font-size: 13px;
 }

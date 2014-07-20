@@ -83,7 +83,7 @@
 	}
 
 	function drawXAxis() {
-		canvas.selectAll('.x.axis').data(charter.days).enter()
+		var tmp = canvas.selectAll('.x.axis').data(charter.days).enter()
 			.append('g')
 			.attr({
 				'class': 'x axis',
@@ -95,7 +95,7 @@
 			.append('g')
 			.attr({
 				'class': 'x axis',
-				'transform': 'translate(0,' + (height+30) +  ')',
+				'transform': 'translate(0,' + (height+20) +  ')',
 			}).call(xDaysAxis);
 	}
 
