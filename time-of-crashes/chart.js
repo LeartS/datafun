@@ -168,7 +168,8 @@
 	}
 
 	// Callbacks
-	function changeYear(next=false) {
+	function changeYear(next) {
+		next = typeof next !== 'undefined' ? next : false;
 		if (next && charter.year <= charter.maxYear) {
 			charter.year++;
 		} else if (!next && charter.year >= charter.minYear) {
