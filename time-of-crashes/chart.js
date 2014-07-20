@@ -39,6 +39,7 @@
 		.attr('height', height + margin.top + margin.bottom)
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+	var dataCanvas = canvas.append('g').attr('class', 'year');
 
 	// Chart elements
 	var series = []
@@ -106,27 +107,32 @@
 			}).call(yAxis);
 	}
 
-	function drawSeries() {
-		canvas.selectAll('.year').data([getCurrentSeries()])
-			.enter()
-			.append('g')
-			.attr('class', 'year')
+	function drawSeries(update) {
+		update = typeof update !== 'undefined' ? update : false;
+		var bars = canvas.selectAll('.year').data([getCurrentSeries()])
 			.selectAll('.bar').data(function(d) {
-				return d.values.filter(function(dd) { return dd.hour != 'Total'; });
-			})
-			.enter()
-			.append('rect')
-			.attr({
-				'class': 'bar',
-				'x': function(dd) {
-					var xd = xDays(charter.days.indexOf(dd.weekday));
-					var xh = xHours(charter.hours.indexOf(dd.hour));
-					return xd + xh;
-				},
-				'y': function(dd) { return y(dd.crashes); },
-				'height': function(dd) { return height - y(dd.crashes); },
-				'width': xHours.rangeBand(),
+				return d.values.filter(function(dd) {
+					return dd.hour != 'Total';
+				});
 			});
+		if (!update) {
+			bars = bars.enter().append('rect');
+		} else {
+			bars = bars.transition()
+				.duration(transitionDuration)
+				.ease('quad-in-out');
+		}
+		bars.attr({
+			'class': 'bar',
+			'x': function(dd) {
+				var xd = xDays(charter.days.indexOf(dd.weekday));
+				var xh = xHours(charter.hours.indexOf(dd.hour));
+				return xd + xh;
+			},
+			'y': function(dd) { return y(dd.crashes); },
+			'height': function(dd) { return height - y(dd.crashes); },
+			'width': xHours.rangeBand(),
+		});
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
 
@@ -144,6 +150,9 @@
 	function setCallbacks() {
 		d3.select('#year_switcher > #prev').on('click', function() {
 			changeYear(false);
+		});
+		d3.select('#year_switcher > #next').on('click', function() {
+			changeYear(true);
 		});
 	}
 
@@ -165,6 +174,7 @@
 		console.log(series);
 		setup();
 		draw();
+		setCallbacks();
 	}
 
 	// Callbacks
@@ -175,6 +185,7 @@
 		} else if (!next && charter.year >= charter.minYear) {
 			charter.year--;
 		}
+		drawSeries(true);
 	}
 
 })();
