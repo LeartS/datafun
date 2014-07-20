@@ -34,7 +34,7 @@
 			});
 		}
 		var q = queue()
-		for (var i = 2006; i < 2013; i++) {
+		for (var i = charter.minYear; i <= charter.maxYear; i++) {
 			q.defer(tsv, i);
 		}
 		q.awaitAll(function(error, data) {

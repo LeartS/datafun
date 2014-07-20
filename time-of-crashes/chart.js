@@ -1,6 +1,6 @@
 (function() {
 	charter = {}; // namespace
-	charter.minYear = 2006;
+	charter.minYear = 1994;
 	charter.maxYear = 2012;
 	charter.year = 2012;
 	charter.days = [
