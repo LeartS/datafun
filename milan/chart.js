@@ -15,7 +15,10 @@
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-	function generateColors(luminance=60, croma=60, offset=0) {
+	function generateColors(luminance, croma, offset) {
+		luminance = typeof luminance !== 'undefined' ? luminance : 60;
+		croma = typeof croma !== 'undefined' ? croma : 60;
+		offset = typeof offset !== 'undefined' ? offset : 0;
 		// http://bl.ocks.org/nitaku/8566245
 		var colors = [];
 		for (var i = 0; i < 20; i++) {

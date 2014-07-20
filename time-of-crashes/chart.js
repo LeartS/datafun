@@ -83,7 +83,7 @@
 	}
 
 	function drawXAxis() {
-		var tmp = canvas.selectAll('.x.axis').data(charter.days).enter()
+		canvas.selectAll('.x.axis').data(charter.days).enter()
 			.append('g')
 			.attr({
 				'class': 'x axis',
