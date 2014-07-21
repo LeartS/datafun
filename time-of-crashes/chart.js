@@ -25,6 +25,18 @@
 		"Total"
 	]
 
+	charter.colors = [
+		'#090529',
+		'#153448',
+		'#346570',
+		'#84B79F',
+		'#F2E4A8',
+		'#D1B32E',
+		'#7A1B36',
+		'#1A1E36',
+		'#666666',
+	]
+
 	var container = d3.select('#chart_area');
 
 	var margin = {top: 20, right: 50, bottom: 60, left: 40},
@@ -46,6 +58,10 @@
 	var xDays = d3.scale.ordinal();
 	var xHours = d3.scale.ordinal();
 	var y = d3.scale.linear();
+	var c = d3.scale.ordinal()
+		.range(charter.colors)
+		.domain(charter.hours);
+
 	var xDaysAxis = d3.svg.axis();
 	var xHoursAxis = d3.svg.axis();
 	var yAxis = d3.svg.axis();
@@ -132,6 +148,7 @@
 			'y': function(dd) { return y(dd.crashes); },
 			'height': function(dd) { return height - y(dd.crashes); },
 			'width': xHours.rangeBand(),
+			'fill': function(dd) { return c(dd.hour); },
 		});
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}

@@ -32,11 +32,11 @@ body {
 }
 
 svg rect.bar {
-	fill: #666;
+	opacity: 0.8;
 }
 
 svg rect.bar:hover {
-	fill: #999;
+	opacity: 1;
 }
 
 svg .axis {
