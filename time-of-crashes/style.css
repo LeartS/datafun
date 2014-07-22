@@ -29,6 +29,13 @@ body {
 	width: 90%;
 	height: 90%;
 	margin: auto;
+	position: relative;
+}
+
+#invert {
+	position: absolute;
+	bottom: 20px;
+	right: 0;
 }
 
 svg rect.bar {

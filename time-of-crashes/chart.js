@@ -57,13 +57,14 @@
 	var series = []
 	var xDays = d3.scale.ordinal();
 	var xHours = d3.scale.ordinal();
+	var x = [xDays, xHours];
 	var y = d3.scale.linear();
 	var c = d3.scale.ordinal()
 		.range(charter.colors)
 		.domain(charter.hours);
-
 	var xDaysAxis = d3.svg.axis();
 	var xHoursAxis = d3.svg.axis();
+	var xAxis = [xDaysAxis, xHoursAxis];
 	var yAxis = d3.svg.axis();
 
 	function setScaleParams() {
@@ -78,16 +79,31 @@
 			.range([height, 0]);
 	}
 
+	function invertScale() {
+		x = [x[1], x[0]];
+		x[0].rangeBands([0, width]);
+		x[1].rangeBands([0, (width-50)/x[0].domain().length], 0.1, 1);
+		xAxis = [xAxis[1], xAxis[0]];
+	}
+
 	function setAxisParams() {
 		xDaysAxis
 			.scale(xDays)
-			.tickFormat(function(i) { return charter.days[i];} )
-			.outerTickSize(0)
 			.orient('bottom');
 		xHoursAxis
 			.scale(xHours)
-			.outerTickSize(1)
 			.orient('bottom');
+		if (xAxis.indexOf(xDaysAxis) === 0) {
+			xDaysAxis.tickFormat(function(i) { return charter.days[i]; });
+			xHoursAxis.tickFormat(function(i) { return i; });
+		} else {
+			xDaysAxis.tickFormat(function(i) { return charter.days[i][0]; });
+			xHoursAxis.tickFormat(function(i) {
+				return charter.hours[i].replace('to', 'to\n');
+			});
+		}
+		xAxis[0].outerTickSize(0);
+		xAxis[1].outerTickSize(1);
 		yAxis
 			.scale(y)
 			.outerTickSize(1)
@@ -98,21 +114,21 @@
 		return series[charter.year - charter.minYear];
 	}
 
-	function drawXAxis() {
-		canvas.selectAll('.x.axis').data(charter.days).enter()
-			.append('g')
-			.attr({
-				'class': 'x axis',
-				'transform': function(d, i) {
-					return 'translate(' + i*xDays.rangeBand() + ',' + height + ')';
-				}
-			}).call(xHoursAxis);
-		canvas.selectAll('.d.axis').data([charter.days]).enter()
-			.append('g')
-			.attr({
-				'class': 'x axis',
-				'transform': 'translate(0,' + (height+20) +  ')',
-			}).call(xDaysAxis);
+	function drawXAxis(update) {
+		var xap = canvas.selectAll('.x.axis.secondary').data(x[0].domain());
+		xap.enter().append('g');
+		xap.exit().remove();
+		xap.attr({
+			'class': 'x axis secondary',
+			'transform': function(d, i) {
+				return 'translate(' + i*x[0].rangeBand() + ',' + height + ')';
+			}
+		}).call(xAxis[1]);
+		var xas = !update ? canvas.append('g') : canvas.selectAll('.x.axis.primary').transition();
+		xas.attr({
+			'class': 'x axis primary',
+			'transform': 'translate(0,' + (height+20) +  ')',
+		}).call(xAxis[0]);
 	}
 
 	function drawYAxis() {
@@ -147,7 +163,7 @@
 			},
 			'y': function(dd) { return y(dd.crashes); },
 			'height': function(dd) { return height - y(dd.crashes); },
-			'width': xHours.rangeBand(),
+			'width': x[1].rangeBand(),
 			'fill': function(dd) { return c(dd.hour); },
 		});
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
@@ -171,6 +187,12 @@
 		d3.select('#year_switcher > #next').on('click', function() {
 			changeYear(true);
 		});
+		d3.select('#invert').on('click', function() {
+			invertScale();
+			setAxisParams();
+			drawXAxis(true);
+			drawSeries(true);
+		});
 	}
 
 	charter.go = function(dataset) {
@@ -188,7 +210,6 @@
 				}
 			})
 			.entries(dataset);
-		console.log(series);
 		setup();
 		draw();
 		setCallbacks();
