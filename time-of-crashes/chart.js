@@ -114,7 +114,7 @@
 		return series[charter.year - charter.minYear];
 	}
 
-	function drawXAxis(update) {
+	function drawXAxis() {
 		var xap = canvas.selectAll('.x.axis.secondary').data(x[0].domain());
 		xap.enter().append('g');
 		xap.exit().remove();
@@ -124,7 +124,8 @@
 				return 'translate(' + i*x[0].rangeBand() + ',' + height + ')';
 			}
 		}).call(xAxis[1]);
-		var xas = !update ? canvas.append('g') : canvas.selectAll('.x.axis.primary').transition();
+		var xas = canvas.selectAll('.x.axis.primary').data([x[0].domain()]);
+		xas.enter().append('g');
 		xas.attr({
 			'class': 'x axis primary',
 			'transform': 'translate(0,' + (height+20) +  ')',
@@ -139,33 +140,29 @@
 			}).call(yAxis);
 	}
 
-	function drawSeries(update) {
-		update = typeof update !== 'undefined' ? update : false;
+	function drawSeries() {
 		var bars = canvas.selectAll('.year').data([getCurrentSeries()])
 			.selectAll('.bar').data(function(d) {
 				return d.values.filter(function(dd) {
 					return dd.hour != 'Total';
 				});
 			});
-		if (!update) {
-			bars = bars.enter().append('rect');
-		} else {
-			bars = bars.transition()
-				.duration(transitionDuration)
-				.ease('quad-in-out');
-		}
-		bars.attr({
-			'class': 'bar',
-			'x': function(dd) {
-				var xd = xDays(charter.days.indexOf(dd.weekday));
-				var xh = xHours(charter.hours.indexOf(dd.hour));
-				return xd + xh;
-			},
-			'y': function(dd) { return y(dd.crashes); },
-			'height': function(dd) { return height - y(dd.crashes); },
-			'width': x[1].rangeBand(),
-			'fill': function(dd) { return c(dd.hour); },
-		});
+		bars.enter().append('rect');
+		bars.transition()
+			.duration(transitionDuration)
+			.ease('quad-in-out')
+			.attr({
+				'class': 'bar',
+				'x': function(dd) {
+					var xd = xDays(charter.days.indexOf(dd.weekday));
+					var xh = xHours(charter.hours.indexOf(dd.hour));
+					return xd + xh;
+				},
+				'y': function(dd) { return y(dd.crashes); },
+				'height': function(dd) { return height - y(dd.crashes); },
+				'width': x[1].rangeBand(),
+				'fill': function(dd) { return c(dd.hour); },
+			});
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
 
@@ -190,8 +187,8 @@
 		d3.select('#invert').on('click', function() {
 			invertScale();
 			setAxisParams();
-			drawXAxis(true);
-			drawSeries(true);
+			drawXAxis();
+			drawSeries();
 		});
 	}
 
@@ -223,7 +220,7 @@
 		} else if (!next && charter.year >= charter.minYear) {
 			charter.year--;
 		}
-		drawSeries(true);
+		drawSeries();
 	}
 
 })();
