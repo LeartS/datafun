@@ -26,14 +26,14 @@
 	]
 
 	charter.colors = [
-		'#090529',
-		'#153448',
-		'#346570',
-		'#84B79F',
-		'#F2E4A8',
-		'#D1B32E',
-		'#7A1B36',
-		'#1A1E36',
+		'#4C3A48',
+		'#Af858F',
+		'#FFC8B3',
+		'#EAD099',
+		'#DBB258',
+		'#EF9051',
+		'#963530',
+		'#302D3D',
 		'#666666',
 	]
 
@@ -75,7 +75,7 @@
 			.domain(d3.range(10))
 			.rangeBands([0, (width-50)/charter.days.length], 0.1, 1);
 		y
-			.domain([0, 2000])
+			.domain([0, 1700])
 			.range([height, 0]);
 	}
 
@@ -141,27 +141,51 @@
 	}
 
 	function drawSeries() {
-		var bars = canvas.selectAll('.year').data([getCurrentSeries()])
-			.selectAll('.bar').data(function(d) {
+
+		function xTotal(dd) {
+			var xd = xDays(charter.days.indexOf(dd.weekday));
+			var xh = xHours(charter.hours.indexOf(dd.hour));
+			return xd + xh;
+		}
+
+		var data = canvas.selectAll('.year').data([getCurrentSeries()])
+			.selectAll('.datum').data(function(d) {
 				return d.values.filter(function(dd) {
 					return dd.hour != 'Total';
 				});
 			});
-		bars.enter().append('rect');
-		bars.transition()
-			.duration(transitionDuration)
-			.ease('quad-in-out')
+		var newData = data.enter().append('g').attr('class', 'datum');
+		newData.append('rect')
 			.attr({
 				'class': 'bar',
-				'x': function(dd) {
-					var xd = xDays(charter.days.indexOf(dd.weekday));
-					var xh = xHours(charter.hours.indexOf(dd.hour));
-					return xd + xh;
-				},
-				'y': function(dd) { return y(dd.crashes); },
-				'height': function(dd) { return height - y(dd.crashes); },
-				'width': x[1].rangeBand(),
 				'fill': function(dd) { return c(dd.hour); },
+			})
+		newData.append('line').attr('class', 'minmax')
+		newData.append('rect').attr('class', 'quartile');
+
+		data.transition()
+			.attr('transform', function(dd) {
+				return 'translate(' + xTotal(dd) + ',0)';
+			});
+		data.select('.bar').transition()
+			.attr({
+				'y': function(d) { return y(d.crashes); },
+				'height': function(d) { return height - y(d.crashes); },
+				'width': x[1].rangeBand(),
+			});
+		data.select('.minmax').transition()
+			.attr({
+				'x1': function(dd) { return x[1].rangeBand()/2; },
+				'x2': function(dd) { return x[1].rangeBand()/2; },
+				'y1': function(dd) { return y(dd.min || 0); },
+				'y2': function(dd) { return y(dd.max || 0); },
+			});
+		data.select('.quartile').transition()
+			.attr({
+				'x': function(dd) { return x[1].rangeBand() * 0.25; },
+				'y': function(dd) { return y(dd.q3 || 0); },
+				'width': function(dd) { return x[1].rangeBand() * 0.5; },
+				'height': function(dd) { return y(dd.q1 || 0) - y(dd.q3 || 0); },
 			});
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
@@ -193,20 +217,44 @@
 	}
 
 	charter.go = function(dataset) {
+
 		// Data manipulation
+		function weekOrder(a, b) {
+			d = charter.days;
+			h = charter.hours;
+			if (d.indexOf(a.weekday) == d.indexOf(b.weekday)) {
+				return h.indexOf(a.hour) > h.indexOf(b.hour);
+			} else {
+				return d.indexOf(a.weekday) > d.indexOf(b.weekday);
+			}
+		}
+
 		series = d3.nest()
 			.key(function(d) { return d.year; })
 			.sortKeys()
-			.sortValues(function(a, b) {
-				d = charter.days;
-				h = charter.hours;
-				if (d.indexOf(a.weekday) == d.indexOf(b.weekday)) {
-					return h.indexOf(a.hour) > h.indexOf(b.hour);
-				} else {
-					return d.indexOf(a.weekday) > d.indexOf(b.weekday);
+			.sortValues(weekOrder)
+			.entries(dataset);
+		var aggregate = d3.nest()
+			.key(function(d) { return d.hour+d.weekday; })
+			.rollup(function(leaves) {
+				var crashes = leaves
+					.map(function(dd) { return dd.crashes; }).sort(d3.ascending);
+				return {
+					min: d3.min(crashes),
+					q1: d3.quantile(crashes, 0.25),
+					crashes: d3.median(crashes),
+					q3: d3.quantile(crashes, 0.75),
+					max: d3.max(crashes),
+					weekday: leaves[0].weekday,
+					hour: leaves[0].hour,
 				}
 			})
 			.entries(dataset);
+		aggregate = aggregate
+			.map(function(d) { return d.values; })
+			.sort(weekOrder);
+		series.push({key: 'Aggregate', values: aggregate});
+
 		setup();
 		draw();
 		setCallbacks();
@@ -217,7 +265,7 @@
 		next = typeof next !== 'undefined' ? next : false;
 		if (next && charter.year <= charter.maxYear) {
 			charter.year++;
-		} else if (!next && charter.year >= charter.minYear) {
+		} else if (!next && charter.year > charter.minYear) {
 			charter.year--;
 		}
 		drawSeries();

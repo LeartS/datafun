@@ -1,5 +1,5 @@
 body {
-	background: gray;
+	background: #777;
 	padding: 0;
 	margin: 0;
 	font-family: 'Oswald', sans-serif;
@@ -38,12 +38,23 @@ body {
 	right: 0;
 }
 
-svg rect.bar {
+svg .datum rect.bar {
 	opacity: 0.8;
 }
 
-svg rect.bar:hover {
+svg .datum rect.bar:hover {
 	opacity: 1;
+}
+
+svg .datum line.minmax {
+	stroke: #222;
+	stroke-opacity: 0.5;
+	stroke-width: 1px;
+}
+
+svg .datum rect.quartile {
+	fill: #222;
+	opacity: 0.5;
 }
 
 svg .axis {
