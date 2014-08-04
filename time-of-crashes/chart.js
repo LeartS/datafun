@@ -2,7 +2,7 @@
 	charter = {}; // namespace
 	charter.minYear = 1994;
 	charter.maxYear = 2012;
-	charter.year = 2012;
+	charter.year = 2013;
 	charter.days = [
 		'Monday',
 		'Tuesday',
@@ -22,7 +22,7 @@
 		"6 p.m. to 8:59 p.m.",
 		"9 p.m. to 11:59 p.m.",
 		"Unknown",
-		"Total"
+		// "Total"
 	]
 
 	charter.colors = [
@@ -37,18 +37,18 @@
 		'#666666',
 	]
 
-	var container = d3.select('#chart_area');
+	var userCoordWidth = 2000, userCoordHeight = 1000;
 
-	var margin = {top: 20, right: 50, bottom: 60, left: 40},
-	    width = parseInt(container.style('width')) - margin.left - margin.right,
-	    height =parseInt(container.style('height')) - margin.top - margin.bottom;
+	var margin = {top: 20, right: 80, bottom: 150, left: 100},
+	    width = userCoordWidth - margin.left - margin.right,
+	    height = userCoordHeight  - margin.top - margin.bottom;
 
 	var transitionDuration = 400;
 
 	var canvas = d3.select('#chart_area')
 		.insert('svg', 'div')
-		.attr('width', width + margin.left + margin.right)
-		.attr('height', height + margin.top + margin.bottom)
+		.attr('viewBox', '0 0 ' + userCoordWidth + ' ' + userCoordHeight)
+		.attr('preserveAspectRatio', 'xMidYMid meet')
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 	var dataCanvas = canvas.append('g').attr('class', 'year');
@@ -69,10 +69,10 @@
 
 	function setScaleParams() {
 		xDays
-			.domain(d3.range(7))
+			.domain(d3.range(charter.days.length))
 			.rangeBands([0, width]);
 		xHours
-			.domain(d3.range(10))
+			.domain(d3.range(charter.hours.length))
 			.rangeBands([0, (width-50)/charter.days.length], 0.1, 1);
 		y
 			.domain([0, 1700])
@@ -99,7 +99,7 @@
 		} else {
 			xDaysAxis.tickFormat(function(i) { return charter.days[i][0]; });
 			xHoursAxis.tickFormat(function(i) {
-				return charter.hours[i].replace('to', 'to\n');
+				return charter.hours[i];
 			});
 		}
 		xAxis[0].outerTickSize(0);
@@ -128,15 +128,21 @@
 		xas.enter().append('g');
 		xas.attr({
 			'class': 'x axis primary',
-			'transform': 'translate(0,' + (height+20) +  ')',
+			'transform': 'translate(0,' + (height+30) +  ')',
 		}).call(xAxis[0]);
+		var xswap = canvas.selectAll('.x.axis.swap').data([1]);
+		xswap.enter().append('path');
+		xswap.attr({
+			'd': 'M 10 0 L 20 10 L 0 10 L 10 0 M 0 15 L 20 15 L 10 25 Z',
+			'class': 'x axis swap',
+			'transform': 'translate(' + width + ', ' + (height + 25) + ')',
+		});
 	}
 
 	function drawYAxis() {
 		canvas.append('g')
 			.attr({
 				'class': 'y axis',
-				// 'transform': 'translate(' + (width+5) + ',0)',
 			}).call(yAxis);
 	}
 
@@ -190,6 +196,11 @@
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
 
+	function drawYearSwitcher() {
+		var ys = canvas.selectAll('#year_switcher').data([charter.year]);
+		ys.enter().append('g');
+	}
+
 	function setup() {
 		setScaleParams();
 		setAxisParams();
@@ -208,7 +219,7 @@
 		d3.select('#year_switcher > #next').on('click', function() {
 			changeYear(true);
 		});
-		d3.select('#invert').on('click', function() {
+		d3.select('.x.axis.swap').on('click', function() {
 			invertScale();
 			setAxisParams();
 			drawXAxis();

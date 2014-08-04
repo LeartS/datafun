@@ -26,8 +26,8 @@ body {
 }
 
 #chart_area {
-	width: 90%;
-	height: 90%;
+	width: 100%;
+	height: 100%;
 	margin: auto;
 	position: relative;
 }
@@ -36,6 +36,11 @@ body {
 	position: absolute;
 	bottom: 20px;
 	right: 0;
+}
+
+svg {
+	width: 100%;
+	height: 100%;
 }
 
 svg .datum rect.bar {
@@ -67,9 +72,14 @@ svg .axis .tick line {
 	stroke-width: 1;
 }
 
-svg .axis path {
+svg .axis.x.swap {
+	pointer-events: bounding-box;
+}
+
+svg .axis.x.swap:hover {
+	fill: #CCC;
 }
 
 svg .axis text {
-	font-size: 13px;
+	font-size: 20;
 }
