@@ -68,8 +68,9 @@ svg .axis {
 	fill: #222;
 }
 
-svg .axis .tick line {
-	stroke-width: 1;
+svg .tick line {
+	stroke: #888;
+	opacity: 0.8;
 }
 
 svg .axis.x.swap {

@@ -51,7 +51,6 @@
 		.attr('preserveAspectRatio', 'xMidYMid meet')
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-	var dataCanvas = canvas.append('g').attr('class', 'year');
 
 	// Chart elements
 	var series = []
@@ -107,6 +106,7 @@
 		yAxis
 			.scale(y)
 			.outerTickSize(1)
+			.innerTickSize(-width)
 			.orient('left');
 	}
 
@@ -144,6 +144,8 @@
 			.attr({
 				'class': 'y axis',
 			}).call(yAxis);
+		canvas.selectAll('.y.axis text').attr('transform', 'translate(-10,0)');
+		canvas.select('.y.axis .tick line').remove();
 	}
 
 	function drawSeries() {
@@ -154,8 +156,9 @@
 			return xd + xh;
 		}
 
-		var data = canvas.selectAll('.year').data([getCurrentSeries()])
-			.selectAll('.datum').data(function(d) {
+		var data = canvas.selectAll('.year').data([getCurrentSeries()]);
+		data.enter().append('g').attr('class', 'year');
+		data = data.selectAll('.datum').data(function(d) {
 				return d.values.filter(function(dd) {
 					return dd.hour != 'Total';
 				});
@@ -207,9 +210,9 @@
 	}
 
 	function draw() {
-		drawSeries();
 		drawXAxis();
 		drawYAxis();
+		drawSeries();
 	}
 
 	function setCallbacks() {
