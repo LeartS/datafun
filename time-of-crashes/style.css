@@ -7,7 +7,6 @@ body {
 
 #year_switcher {
 	height: 30px;
-	/* width: 200px; */
 	line-height: 30px;
 	font-size: 2.2em;
 	text-align: center;
@@ -63,12 +62,11 @@ svg .datum rect.quartile {
 }
 
 svg .axis {
-	/* stroke: #222; */
 	stroke-width: 1;
 	fill: #222;
 }
 
-svg .tick line {
+svg .axis.y .tick line {
 	stroke: #888;
 	opacity: 0.8;
 }
