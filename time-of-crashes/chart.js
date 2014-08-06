@@ -173,16 +173,19 @@
 		newData.append('rect').attr('class', 'quartile');
 
 		data.transition()
+			.duration(transitionDuration)
 			.attr('transform', function(dd) {
 				return 'translate(' + xTotal(dd) + ',0)';
 			});
 		data.select('.bar').transition()
+			.duration(transitionDuration)
 			.attr({
 				'y': function(d) { return y(d.crashes); },
 				'height': function(d) { return height - y(d.crashes); },
 				'width': x[1].rangeBand(),
 			});
 		data.select('.minmax').transition()
+			.duration(transitionDuration)
 			.attr({
 				'x1': function(dd) { return x[1].rangeBand()/2; },
 				'x2': function(dd) { return x[1].rangeBand()/2; },
@@ -190,6 +193,7 @@
 				'y2': function(dd) { return y(dd.max || 0); },
 			});
 		data.select('.quartile').transition()
+			.duration(transitionDuration)
 			.attr({
 				'x': function(dd) { return x[1].rangeBand() * 0.25; },
 				'y': function(dd) { return y(dd.q3 || 0); },
