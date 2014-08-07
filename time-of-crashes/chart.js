@@ -226,6 +226,14 @@
 		d3.select('#year_switcher > #next').on('click', function() {
 			changeYear(true);
 		});
+		d3.select('body').on('keypress', function(d) {
+			if (d3.event.key == 'Left') {
+				changeYear();
+			} else if (d3.event.key == 'Right') {
+				changeYear(true);
+			}
+			console.log(d3.event);
+		});
 		d3.select('.x.axis.swap').on('click', function() {
 			invertScale();
 			setAxisParams();
@@ -283,10 +291,11 @@
 		next = typeof next !== 'undefined' ? next : false;
 		if (next && charter.year <= charter.maxYear) {
 			charter.year++;
+			drawSeries();
 		} else if (!next && charter.year > charter.minYear) {
 			charter.year--;
+			drawSeries();
 		}
-		drawSeries();
 	}
 
 })();
