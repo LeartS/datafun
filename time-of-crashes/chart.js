@@ -231,6 +231,8 @@
 				changeYear();
 			} else if (d3.event.keyCode == 39) {
 				changeYear(true);
+			} else if (d3.event.keyCode == 83) {
+				d3.select('.x.axis.swap').on('click')();
 			}
 		});
 		d3.select('.x.axis.swap').on('click', function() {
