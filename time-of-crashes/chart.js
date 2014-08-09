@@ -226,13 +226,12 @@
 		d3.select('#year_switcher > #next').on('click', function() {
 			changeYear(true);
 		});
-		d3.select('body').on('keypress', function(d) {
-			if (d3.event.key == 'Left') {
+		d3.select('body').on('keyup', function(d) {
+			if (d3.event.keyCode == 37) {
 				changeYear();
-			} else if (d3.event.key == 'Right') {
+			} else if (d3.event.keyCode == 39) {
 				changeYear(true);
 			}
-			console.log(d3.event);
 		});
 		d3.select('.x.axis.swap').on('click', function() {
 			invertScale();
