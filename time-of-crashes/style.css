@@ -5,25 +5,6 @@ body {
 	font-family: 'Oswald', sans-serif;
 }
 
-#year_switcher {
-	height: 30px;
-	line-height: 30px;
-	font-size: 2.2em;
-	text-align: center;
-	color: #333;
-	margin: 10px auto;
-}
-
-#year_switcher a {
-	text-decoration: none;
-	color: #333;
-}
-
-#year_switcher a:hover {
-	text-decoration: underline;
-	color: #666;
-}
-
 #chart_area {
 	width: 100%;
 	height: 100%;
@@ -81,4 +62,10 @@ svg .axis.x.swap:hover {
 
 svg .axis text {
 	font-size: 20;
+}
+
+svg .year_chooser path.data {
+	fill: none;
+	stroke: #222;
+	stroke-width: 2px;
 }

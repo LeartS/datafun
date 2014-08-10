@@ -37,20 +37,30 @@
 		'#666666',
 	]
 
+	// independent of screen size
 	var userCoordWidth = 2000, userCoordHeight = 1000;
-
-	var margin = {top: 20, right: 80, bottom: 150, left: 100},
-	    width = userCoordWidth - margin.left - margin.right,
-	    height = userCoordHeight  - margin.top - margin.bottom;
+	var mainHeightPerc = 0.80;
+	var mainHeight = Math.floor(userCoordHeight * mainHeightPerc);
+	// yc = Year Chooser; mc = Main Chart
+	var mcMargin = {top: 20, right: 80, bottom: 80, left: 100};
+	var ycMargin = {top: 0, right: 80, bottom: 30, left: 100};
+	var mcHeight = mainHeight - mcMargin.top - mcMargin.bottom;
+	var ycHeight = userCoordHeight - mainHeight  - ycMargin.top - ycMargin.bottom;
+	var mcWidth = userCoordWidth - mcMargin.left - mcMargin.right;
+	var ycWidth = userCoordWidth - ycMargin.left - ycMargin.right;
 
 	var transitionDuration = 400;
 
 	var canvas = d3.select('#chart_area')
 		.insert('svg', 'div')
 		.attr('viewBox', '0 0 ' + userCoordWidth + ' ' + userCoordHeight)
-		.attr('preserveAspectRatio', 'xMidYMid meet')
-		.append('g')
-		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+		.attr('preserveAspectRatio', 'xMidYMid meet');
+	var mainChart = canvas.append('g')
+		.attr('class', 'main_chart')
+		.attr('transform', 'translate(' + mcMargin.left + ',' + mcMargin.top + ')');
+	var yearChooser = canvas.append('g')
+		.attr('class', 'year_chooser')
+		.attr('transform', 'translate(' + ycMargin.left + ',' + (mainHeight + ycMargin.top) + ')');
 
 	// Chart elements
 	var series = []
@@ -66,22 +76,56 @@
 	var xAxis = [xDaysAxis, xHoursAxis];
 	var yAxis = d3.svg.axis();
 
+	function drawYearChooser() {
+		ycXScale = d3.scale.ordinal()
+			.domain(d3.range(charter.minYear, charter.maxYear+1))
+			.rangeBands([0, ycWidth]);
+		ycYScale = d3.scale.linear()
+			.domain([25000, 40000])
+			.range([ycHeight, 0]);
+		ycXAxis = d3.svg.axis()
+			.scale(ycXScale)
+			.outerTickSize(1)
+			.orient('bottom');
+		ycYAxis = d3.svg.axis()
+			.scale(ycYScale)
+			.ticks(4)
+			.outerTickSize(1)
+			.orient('left');
+		yearChooser.append('g').attr('class', 'x axis')
+			.attr('transform', 'translate(0,' + ycHeight + ')').call(ycXAxis);
+		yearChooser.append('g').attr('class', 'y axis').call(ycYAxis);
+		var line = d3.svg.line()
+			.x(function(d) { return ycXScale(+d.key); })
+			.y(function(d) {
+				var c = d.values.filter(function(dd) {
+					return dd.hour === 'Total';
+				}).reduce(function(sum, value) {
+					return sum + value.crashes;
+				}, 0);
+				return ycYScale(c);
+			});
+		yearChooser.datum(series.slice(0,series.length-1)).append('path')
+			.attr('class', 'data')
+			.attr('d', function(d) { return line(d); });
+	}
+
 	function setScaleParams() {
 		xDays
 			.domain(d3.range(charter.days.length))
-			.rangeBands([0, width]);
+			.rangeBands([0, mcWidth]);
 		xHours
 			.domain(d3.range(charter.hours.length))
-			.rangeBands([0, (width-50)/charter.days.length], 0.1, 1);
+			.rangeBands([0, (mcWidth-50)/charter.days.length], 0.1, 1);
 		y
 			.domain([0, 1700])
-			.range([height, 0]);
+			.range([mcHeight, 0]);
 	}
 
 	function invertScale() {
 		x = [x[1], x[0]];
-		x[0].rangeBands([0, width]);
-		x[1].rangeBands([0, (width-50)/x[0].domain().length], 0.1, 1);
+		x[0].rangeBands([0, mcWidth]);
+		x[1].rangeBands([0, (mcWidth-50)/x[0].domain().length], 0.1, 1);
 		xAxis = [xAxis[1], xAxis[0]];
 	}
 
@@ -106,7 +150,7 @@
 		yAxis
 			.scale(y)
 			.outerTickSize(1)
-			.innerTickSize(-width)
+			.innerTickSize(-mcWidth)
 			.orient('left');
 	}
 
@@ -115,37 +159,37 @@
 	}
 
 	function drawXAxis() {
-		var xap = canvas.selectAll('.x.axis.secondary').data(x[0].domain());
+		var xap = mainChart.selectAll('.x.axis.secondary').data(x[0].domain());
 		xap.enter().append('g');
 		xap.exit().remove();
 		xap.attr({
 			'class': 'x axis secondary',
 			'transform': function(d, i) {
-				return 'translate(' + i*x[0].rangeBand() + ',' + height + ')';
+				return 'translate(' + i*x[0].rangeBand() + ',' + mcHeight + ')';
 			}
 		}).call(xAxis[1]);
-		var xas = canvas.selectAll('.x.axis.primary').data([x[0].domain()]);
+		var xas = mainChart.selectAll('.x.axis.primary').data([x[0].domain()]);
 		xas.enter().append('g');
 		xas.attr({
 			'class': 'x axis primary',
-			'transform': 'translate(0,' + (height+30) +  ')',
+			'transform': 'translate(0,' + (mcHeight+30) +  ')',
 		}).call(xAxis[0]);
-		var xswap = canvas.selectAll('.x.axis.swap').data([1]);
+		var xswap = mainChart.selectAll('.x.axis.swap').data([1]);
 		xswap.enter().append('path');
 		xswap.attr({
 			'd': 'M 10 0 L 20 10 L 0 10 L 10 0 M 0 15 L 20 15 L 10 25 Z',
 			'class': 'x axis swap',
-			'transform': 'translate(' + width + ', ' + (height + 25) + ')',
+			'transform': 'translate(' + mcWidth + ', ' + (mcHeight + 25) + ')',
 		});
 	}
 
 	function drawYAxis() {
-		canvas.append('g')
+		mainChart.append('g')
 			.attr({
 				'class': 'y axis',
 			}).call(yAxis);
-		canvas.selectAll('.y.axis text').attr('transform', 'translate(-10,0)');
-		canvas.select('.y.axis .tick line').remove();
+		mainChart.selectAll('.y.axis text').attr('transform', 'translate(-10,0)');
+		mainChart.select('.y.axis .tick line').remove();
 	}
 
 	function drawSeries() {
@@ -156,7 +200,7 @@
 			return xd + xh;
 		}
 
-		var data = canvas.selectAll('.year').data([getCurrentSeries()]);
+		var data = mainChart.selectAll('.year').data([getCurrentSeries()]);
 		data.enter().append('g').attr('class', 'year');
 		data = data.selectAll('.datum').data(function(d) {
 				return d.values.filter(function(dd) {
@@ -181,7 +225,7 @@
 			.duration(transitionDuration)
 			.attr({
 				'y': function(d) { return y(d.crashes); },
-				'height': function(d) { return height - y(d.crashes); },
+				'height': function(d) { return mcHeight - y(d.crashes); },
 				'width': x[1].rangeBand(),
 			});
 		data.select('.minmax').transition()
@@ -203,11 +247,6 @@
 		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
 
-	function drawYearSwitcher() {
-		var ys = canvas.selectAll('#year_switcher').data([charter.year]);
-		ys.enter().append('g');
-	}
-
 	function setup() {
 		setScaleParams();
 		setAxisParams();
@@ -227,11 +266,11 @@
 			changeYear(true);
 		});
 		d3.select('body').on('keyup', function(d) {
-			if (d3.event.keyCode == 37) {
+			if (d3.event.keyCode == 37) {        // Left arrow
 				changeYear();
-			} else if (d3.event.keyCode == 39) {
+			} else if (d3.event.keyCode == 39) { // Right arrow
 				changeYear(true);
-			} else if (d3.event.keyCode == 83) {
+			} else if (d3.event.keyCode == 83) { // s
 				d3.select('.x.axis.swap').on('click')();
 			}
 		});
@@ -283,6 +322,7 @@
 		series.push({key: 'Aggregate', values: aggregate});
 
 		setup();
+		drawYearChooser();
 		draw();
 		setCallbacks();
 	}
