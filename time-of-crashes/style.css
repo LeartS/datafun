@@ -1,12 +1,12 @@
 body {
-	background: #777;
+	background: #ffffff;
 	padding: 0;
 	margin: 0;
 	font-family: 'Oswald', sans-serif;
 }
 
 #chart_area {
-	width: 100%;
+	width: 90%;
 	height: 100%;
 	margin: auto;
 	position: relative;
@@ -24,7 +24,7 @@ svg {
 }
 
 svg .datum rect.bar {
-	opacity: 0.8;
+	opacity: 0.85;
 }
 
 svg .datum rect.bar:hover {
@@ -44,11 +44,11 @@ svg .datum rect.quartile {
 
 svg .axis {
 	stroke-width: 1;
-	fill: #222;
+	fill: #444;
 }
 
 svg .axis.y .tick line {
-	stroke: #888;
+	stroke: #ddd;
 	opacity: 0.8;
 }
 
@@ -61,7 +61,7 @@ svg .axis.x.swap:hover {
 }
 
 svg .axis text {
-	font-size: 20;
+	font-size: 17;
 }
 
 svg .year_chooser path.data {
