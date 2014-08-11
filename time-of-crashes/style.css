@@ -69,3 +69,8 @@ svg .year_chooser path.data {
 	stroke: #222;
 	stroke-width: 2px;
 }
+
+svg .year_chooser rect.indicator {
+	fill: red;
+	opacity: 0.2;
+}

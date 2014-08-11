@@ -96,7 +96,7 @@
 			.attr('transform', 'translate(0,' + ycHeight + ')').call(ycXAxis);
 		yearChooser.append('g').attr('class', 'y axis').call(ycYAxis);
 		var line = d3.svg.line()
-			.x(function(d) { return ycXScale(+d.key); })
+			.x(function(d) { return ycXScale(+d.key) + ycXScale.rangeBand()/2; })
 			.y(function(d) {
 				var c = d.values.filter(function(dd) {
 					return dd.hour === 'Total';
@@ -108,6 +108,23 @@
 		yearChooser.datum(series.slice(0,series.length-1)).append('path')
 			.attr('class', 'data')
 			.attr('d', function(d) { return line(d); });
+		drawYearChooserIndicator();
+	}
+
+	function drawYearChooserIndicator() {
+		var indicator = yearChooser.selectAll('rect.indicator').data([1]);
+		indicator.enter().append('rect').attr({
+			'class': 'indicator',
+			'width': ycXScale.rangeBand(),
+			'height': ycHeight,
+		});
+		indicator.transition()
+			.duration(transitionDuration)
+			.attr({
+				'x': charter.year === 2013 ? 0 : ycXScale(charter.year),
+				'y': 0,
+				'width': charter.year === 2013 ? ycWidth : ycXScale.rangeBand(),
+			});
 	}
 
 	function setScaleParams() {
@@ -332,11 +349,11 @@
 		next = typeof next !== 'undefined' ? next : false;
 		if (next && charter.year <= charter.maxYear) {
 			charter.year++;
-			drawSeries();
 		} else if (!next && charter.year > charter.minYear) {
 			charter.year--;
-			drawSeries();
 		}
+		drawSeries();
+		drawYearChooserIndicator();
 	}
 
 })();
