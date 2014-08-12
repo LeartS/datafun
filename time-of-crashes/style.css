@@ -71,6 +71,16 @@ svg .year_chooser path.data {
 }
 
 svg .year_chooser rect.indicator {
-	fill: red;
+	fill: #cc0000;
 	opacity: 0.2;
+}
+
+svg .year_chooser rect.selector {
+	fill: #cc8888;
+	opacity: 0;
+}
+
+svg .year_chooser rect.selector:hover {
+	opacity: 0.2;
+	cursor: pointer;
 }

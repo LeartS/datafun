@@ -95,6 +95,18 @@
 		yearChooser.append('g').attr('class', 'x axis')
 			.attr('transform', 'translate(0,' + ycHeight + ')').call(ycXAxis);
 		yearChooser.append('g').attr('class', 'y axis').call(ycYAxis);
+		yearChooser.append('g').attr('class', 'selectors')
+			.selectAll('rect.selector')
+			.data(series.slice(0, series.length-1))
+			.enter()
+			.append('rect')
+			.attr({
+				'class': 'selector',
+				'width': ycXScale.rangeBand(),
+				'height': ycHeight,
+				'x': function(d) { return ycXScale(+d.key); },
+				'y': 0,
+			});
 		var line = d3.svg.line()
 			.x(function(d) { return ycXScale(+d.key) + ycXScale.rangeBand()/2; })
 			.y(function(d) {
@@ -113,11 +125,11 @@
 
 	function drawYearChooserIndicator() {
 		var indicator = yearChooser.selectAll('rect.indicator').data([1]);
-		indicator.enter().append('rect').attr({
-			'class': 'indicator',
-			'width': ycXScale.rangeBand(),
-			'height': ycHeight,
-		});
+		indicator.enter().append('rect')
+			.attr({
+				'class': 'indicator',
+				'height': ycHeight,
+			});
 		indicator.transition()
 			.duration(transitionDuration)
 			.attr({
@@ -261,7 +273,6 @@
 				'width': function(dd) { return x[1].rangeBand() * 0.5; },
 				'height': function(dd) { return y(dd.q1 || 0) - y(dd.q3 || 0); },
 			});
-		d3.select('#year_switcher > #year').text(getCurrentSeries().key);
 	}
 
 	function setup() {
@@ -276,17 +287,11 @@
 	}
 
 	function setCallbacks() {
-		d3.select('#year_switcher > #prev').on('click', function() {
-			changeYear(false);
-		});
-		d3.select('#year_switcher > #next').on('click', function() {
-			changeYear(true);
-		});
 		d3.select('body').on('keyup', function(d) {
 			if (d3.event.keyCode == 37) {        // Left arrow
-				changeYear();
+				setYear(charter.year-1);
 			} else if (d3.event.keyCode == 39) { // Right arrow
-				changeYear(true);
+				setYear(charter.year+1);
 			} else if (d3.event.keyCode == 83) { // s
 				d3.select('.x.axis.swap').on('click')();
 			}
@@ -296,6 +301,9 @@
 			setAxisParams();
 			drawXAxis();
 			drawSeries();
+		});
+		yearChooser.selectAll('rect.selector').on('click', function(d) {
+			setYear(+d.key);
 		});
 	}
 
@@ -345,15 +353,12 @@
 	}
 
 	// Callbacks
-	function changeYear(next) {
-		next = typeof next !== 'undefined' ? next : false;
-		if (next && charter.year <= charter.maxYear) {
-			charter.year++;
-		} else if (!next && charter.year > charter.minYear) {
-			charter.year--;
+	function setYear(year) {
+		if (year >= charter.minYear && year <= charter.maxYear + 1) {
+			charter.year = year;
+			drawSeries();
+			drawYearChooserIndicator();
 		}
-		drawSeries();
-		drawYearChooserIndicator();
 	}
 
 })();
