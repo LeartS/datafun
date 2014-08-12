@@ -92,14 +92,21 @@
 			.ticks(4)
 			.outerTickSize(1)
 			.orient('left');
+		var line = d3.svg.line()
+			.x(function(d) { return ycXScale(+d.key) + ycXScale.rangeBand()/2; })
+			.y(function(d) {
+				return ycYScale(d.values.filter(function(dd) {
+					return dd.hour === 'Total';
+				}).reduce(function(sum, value) {
+					return sum + value.crashes;
+				}, 0));
+			});
 		yearChooser.append('g').attr('class', 'x axis')
 			.attr('transform', 'translate(0,' + ycHeight + ')').call(ycXAxis);
 		yearChooser.append('g').attr('class', 'y axis').call(ycYAxis);
-		yearChooser.append('g').attr('class', 'selectors')
-			.selectAll('rect.selector')
-			.data(series.slice(0, series.length-1))
-			.enter()
-			.append('rect')
+		drawYearChooserIndicator();
+		yearChooser.append('g').selectAll('rect.selector')
+			.data(series.slice(0, series.length-1)).enter().append('rect')
 			.attr({
 				'class': 'selector',
 				'width': ycXScale.rangeBand(),
@@ -107,20 +114,9 @@
 				'x': function(d) { return ycXScale(+d.key); },
 				'y': 0,
 			});
-		var line = d3.svg.line()
-			.x(function(d) { return ycXScale(+d.key) + ycXScale.rangeBand()/2; })
-			.y(function(d) {
-				var c = d.values.filter(function(dd) {
-					return dd.hour === 'Total';
-				}).reduce(function(sum, value) {
-					return sum + value.crashes;
-				}, 0);
-				return ycYScale(c);
-			});
 		yearChooser.datum(series.slice(0,series.length-1)).append('path')
 			.attr('class', 'data')
 			.attr('d', function(d) { return line(d); });
-		drawYearChooserIndicator();
 	}
 
 	function drawYearChooserIndicator() {
