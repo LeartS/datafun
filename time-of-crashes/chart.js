@@ -215,6 +215,14 @@
 			}).call(yAxis);
 		mainChart.selectAll('.y.axis text').attr('transform', 'translate(-10,0)');
 		mainChart.select('.y.axis .tick line').remove();
+		mainChart.select('.y.axis').append('text')
+			.attr({
+				'x': 0,
+				'y': 24,
+				'transform': 'rotate(-90)',
+			})
+			.style('text-anchor', 'end')
+			.text('# of fatal crashes');
 	}
 
 	function drawSeries() {
