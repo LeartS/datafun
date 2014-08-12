@@ -299,7 +299,7 @@
 			drawSeries();
 		});
 		yearChooser.selectAll('rect.selector').on('click', function(d) {
-			setYear(+d.key);
+			setYear(+d.key === charter.year ? 2013 : +d.key);
 		});
 	}
 
