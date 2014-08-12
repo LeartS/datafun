@@ -39,7 +39,7 @@
 
 	// independent of screen size
 	var userCoordWidth = 2000, userCoordHeight = 1000;
-	var mainHeightPerc = 0.80;
+	var mainHeightPerc = 0.88;
 	var mainHeight = Math.floor(userCoordHeight * mainHeightPerc);
 	// yc = Year Chooser; mc = Main Chart
 	var mcMargin = {top: 20, right: 80, bottom: 80, left: 100};
