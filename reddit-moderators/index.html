@@ -1,0 +1,32 @@
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title>Top Subreddits Moderators</title>
+	<link type="text/css" rel="stylesheet" href="style.css" />
+	<script src="../vendor/d3/d3.min.js" charset="utf-8"></script>
+	<script src="../vendor/queue/queue.min.js"></script>
+  </head>
+  <body>
+	<div id="chart_area"></div>
+	<script type="text/javascript" src="chart.js"></script>
+	<script type="text/javascript">
+		function json(subreddit, callback) {
+			d3.json('data/' + subreddit + '.json', function(row) {
+				row.data.children.forEach(function(d) {
+					delete d.mod_permissions;
+					d['subreddit'] = subreddit;
+				});
+				row.data.children ? callback(null, row.data.children) : callback('error');
+			});
+		}
+		var q = queue()
+		for (var i = 0; i < charter.subreddits.length; i++) {
+			q.defer(json, charter.subreddits[i]);
+		}
+		q.awaitAll(function(error, data) {
+			flattenedData = data.reduce(function(a, b) { return a.concat(b); });
+			charter.init(flattenedData);
+		});
+	</script>
+  </body>
+</html>
