@@ -28,9 +28,17 @@
 		'mildlyinteresting',
 	];
 
+	var svg = d3.select('#chart_area').append('svg')
+		.attr('width', 1000)
+		.attr('height', 700)
+		.append('g')
+		.attr('transform', 'translate(500,350)');
+
 	var dataset = null;
 	var matrix = [];
 	var chordLayout = d3.layout.chord()
+	var arcGenerator = d3.svg.arc().innerRadius(300).outerRadius(350);
+	var chordGenerator = d3.svg.chord().radius(300);
 
 	function setLayoutParams() {
 		chordLayout.matrix(matrix.map(function(row) {
@@ -63,6 +71,21 @@
 				}
 			});
 		setLayoutParams();
+		console.log(chordLayout.matrix());
+		svg.append('g')
+			.selectAll('g')
+			.data(chordLayout.groups)
+			.enter()
+			.append('path')
+			.attr('d', function(d) { return arcGenerator(d); });
+		svg.append('g').attr('class', 'chord')
+			.selectAll('.path')
+			.data(chordLayout.chords).enter()
+			.append('path')
+			.attr('d', chordGenerator)
+			.attr('stroke', 'blue')
+			.style('fill', 'red');
+		console.log(chordLayout.chords());
 	}
 
 })();
