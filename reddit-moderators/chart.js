@@ -1,47 +1,35 @@
 (function() {
 	charter = {} // namespace
 	charter.subreddits = [
-		'funny',
-		'AdviceAnimals',
-		'pics',
-		'aww',
-		'WTF',
-		'videos',
-		'gaming',
-		'todayilearned',
-		'leagueoflegends',
-		'AskReddit',
-		'gonewild',
-		'gifs',
-		'worldnews',
-		'pcmasterrace',
-		'TrollXChromosomes',
-		'4chan',
-		'news',
-		'trees',
-		'reactiongifs',
-		'movies',
-		'DotA2',
-		'ImGoingToHellForThis',
-		'pokemon',
-		'politics',
-		'mildlyinteresting',
+		'funny', 'AdviceAnimals', 'pics', 'aww', 'WTF', 'videos', 'gaming',
+		'todayilearned', 'leagueoflegends', 'AskReddit', 'gonewild', 'gifs',
+		'worldnews', 'pcmasterrace', 'TrollXChromosomes', '4chan', 'news',
+		'trees', 'reactiongifs', 'movies', 'DotA2', 'ImGoingToHellForThis',
+		'pokemon', 'politics', 'mildlyinteresting',
 	];
-	var palette = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99",
-	               "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a",
-	               "#ffff99", "#b15928"];
+	var palette = [
+		"#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c",
+		"#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"
+	];
+
+	var width = 1000;
+	var height = 600;
+	var modLineY = height * 0.3;
+	var subLineY = height * 0.7;
 
 	var svg = d3.select('#chart_area').append('svg')
-		.attr('width', 1000)
+		.attr('width', 1200)
 		.attr('height', 700)
 		.append('g')
-		.attr('transform', 'translate(500,350)');
+		.attr('transform', 'translate(20,20)');
 
 	var dataset = null;
+	var moderators = null;
+	var subreddits = null;
+	var links = [];
 	var matrix = [];
-	var chordLayout = d3.layout.chord()
-	var arcGenerator = d3.svg.arc().innerRadius(300).outerRadius(350);
-	var chordGenerator = d3.svg.chord().radius(300);
+	var userScale = d3.scale.ordinal().rangePoints([0, width]);
+	var subredditScale = d3.scale.ordinal().rangePoints([0, width]);
 
 	function setLayoutParams() {
 		chordLayout.matrix(matrix.map(function(row) {
@@ -51,50 +39,69 @@
 		})).sortSubgroups(d3.descending);
 	}
 
-	charter.init = function(dataset) {
-		var users = d3.nest()
-			.key(function(d) { return d.name; })
-			.entries(dataset);
-		console.log(users);
-		for (var i = 0; i < charter.subreddits.length; i++) {
-			matrix[i] = new Array(charter.subreddits.length);
-			for (var j = 0; j < charter.subreddits.length; j++) {
-				matrix[i][j] = [];
-				if (i === j) { matrix[i][j] = new Array(20); }
-			}
-		}
-		users.filter(function(d) { return d.values.length > 1; })
-			.forEach(function(d) {
-				if (d.key === 'AutoModerator') { return; }
-				for (var i = 0; i < d.values.length; i++) {
-					var s1 = charter.subreddits.indexOf(d.values[i].subreddit);
-					for (var j = i+1; j < d.values.length; j++) {
-						var s2 = charter.subreddits.indexOf(d.values[j].subreddit);
-						matrix[s1][s2].push(d.values[0].name);
-						matrix[s2][s1].push(d.values[0].name);
-					}
-				}
+	function setScaleParams() {
+		userScale.domain(moderators.map(function(d) { return d.key; }));
+		subredditScale.domain(charter.subreddits);
+	}
+
+	function drawModerators() {
+		svg.append('g').attr('class','moderators')
+			.selectAll('circle')
+			.data(moderators).enter()
+			.append('circle')
+			.attr({
+				'cy': modLineY,
+				'cx': function(d) { return userScale(d.key); },
+				'r': function(d) { return 3.5 * Math.sqrt(d.values.length); },
+				// 'fill': function(d,i) { return palette[i%12]; },
 			});
-		setLayoutParams();
-		console.log(chordLayout.matrix());
-		var cc = chordLayout.chords().filter(function(chord) {
-			return chord.target.index !== chord.source.index;
+	}
+
+	function drawSubreddits() {
+		svg.append('g').attr('class','subreddits')
+			.selectAll('circle')
+			.data(subreddits).enter()
+			.append('circle')
+			.attr({
+				'cy': subLineY,
+				'cx': function(d) { return subredditScale(d.key); },
+				'r': function(d) { return 3.5 * Math.sqrt(d.values.length); },
+				// 'fill': function(d,i) { return palette[i%12]; },
+			});
+	}
+
+	function drawLinks() {
+		svg.append('g').attr('class', 'links')
+			.selectAll('line')
+			.data(links).enter()
+			.append('line')
+			.attr({
+				'x1': function(d) { return userScale(d.moderator); },
+				'y1': modLineY,
+				'x2': function(d) { return subredditScale(d.subreddit); },
+				'y2': subLineY,
+			});
+	}
+
+	charter.init = function(dataset) {
+		moderators = d3.nest()
+			.key(function(d) { return d.name; })
+			.entries(dataset)
+			.filter(function(d) {
+				return d.values.length > 1 && d.key !== 'AutoModerator';
+			});
+		subreddits = d3.nest()
+			.key(function(d) { return d.subreddit; })
+			.entries(dataset);
+		moderators.forEach(function(d, i) {
+			d.values.forEach(function(dd, ii) {
+				links.push({'moderator': d.key, 'subreddit': dd.subreddit});
+			});
 		});
-		svg.append('g')
-			.selectAll('g')
-			.data(chordLayout.groups)
-			.enter()
-			.append('path')
-			.attr('d', function(d) { return arcGenerator(d); })
-			.style('fill', function(d,i) { return palette[i%12]; });
-		svg.append('g').attr('class', 'chord')
-			.selectAll('.path')
-			.data(cc).enter()
-			.append('path')
-			.attr('fill', function(d) { return palette[d.source.index]; })
-			.attr('opacity', 0.8)
-			.attr('d', chordGenerator);
-		console.log(chordLayout.chords());
+		setScaleParams();
+		drawLinks();
+		drawModerators();
+		drawSubreddits();
 	}
 
 })();
