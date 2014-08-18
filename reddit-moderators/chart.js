@@ -26,8 +26,9 @@
 	var dataset = null;
 	var moderators = null;
 	var subreddits = null;
-	var links = [];
-	var matrix = [];
+	var links = []; // moderator - subreddit links
+	var moderatorsMatrix = [];
+	var subredditsMatrix = [];
 	var userScale = d3.scale.ordinal().rangePoints([0, width]);
 	var subredditScale = d3.scale.ordinal().rangePoints([0, width]);
 
@@ -93,9 +94,24 @@
 		subreddits = d3.nest()
 			.key(function(d) { return d.subreddit; })
 			.entries(dataset);
+
+		// Create links
 		moderators.forEach(function(d, i) {
 			d.values.forEach(function(dd, ii) {
 				links.push({'moderator': d.key, 'subreddit': dd.subreddit});
+			});
+		});
+		// Create moderators matrix
+		var submoderators = [];
+		var s1, s2;
+		moderators.forEach(function(m1, i) {
+			moderatorsMatrix[i] = [];
+			s1 = d3.set(m1.values.map(function(v) { return v.subreddit; }));
+			moderators.forEach(function(m2, j) {
+				var shared = d3.set([]);
+				s2 = d3.set(m2.values.map(function(v) { return v.subreddit; }));
+				s1.forEach(function(v) { if (s2.has(v)) shared.add(v); });
+				moderatorsMatrix[i][j] = shared;
 			});
 		});
 		setScaleParams();
