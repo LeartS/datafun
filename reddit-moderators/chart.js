@@ -11,24 +11,24 @@
 		"#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c",
 		"#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"
 	];
-
-	var width = 1000;
-	var height = 600;
+	var container = d3.select('#chart_area');
+	var width = 1920;
+	var height = 1080;
 	var modLineY = height * 0.3;
 	var subLineY = height * 0.7;
 
 	var svg = d3.select('#chart_area').append('svg')
-		.attr('width', 1200)
-		.attr('height', 700)
+		.attr('viewBox', '0 0 ' + width + ' ' + height)
+		.attr('preserveAspectRatio', 'xMidYMid meet')
 		.append('g')
-		.attr('transform', 'translate(20,20)');
+		.attr('transform', 'translate(0,50)');
 
 	var dataset = null;
 	var moderators = null;
 	var subreddits = null;
 	var links = []; // moderator - subreddit links
 	var modLinks = []; // moderator - moderator links
-	var subredditsMatrix = [];
+	var subLinks = [];
 	var userScale = d3.scale.ordinal().rangePoints([0, width]);
 	var subredditScale = d3.scale.ordinal().rangePoints([0, width]);
 
@@ -97,7 +97,7 @@
 			// the ellipse will be scaled up uniformly until big enough.
 			// This assures all ellipses will have the same eccentricity without
 			// the need to calculate rx and ry from the points coordinates.
-			pathString += 'A 10 6 0 0 1 ' + x2 + ' ' + y;
+			pathString += 'A 10 4 0 0 1 ' + x2 + ' ' + y;
 			return pathString;
 		};
 
@@ -106,6 +106,30 @@
 			.data(modLinks).enter()
 			.append('path')
 			.attr('d', modLinksArcGenerator);
+	}
+
+	function drawSubLinks() {
+		var subLinksArcGenerator = function(subLink) {
+			var x1 = subredditScale(subLink.r1);
+			var x2 = subredditScale(subLink.r2);
+			var y = subLineY;
+			var pathString = ""
+			pathString += 'M ' + x1 + ' ' + y + ' ';
+			// rx 10, ry 6 is an hack: the x radius is too small for any pair of
+			// points. Therefore, according to
+			// http://www.w3.org/TR/SVG/implnote.html#ArcOutOfRangeParameters
+			// the ellipse will be scaled up uniformly until big enough.
+			// This assures all ellipses will have the same eccentricity without
+			// the need to calculate rx and ry from the points coordinates.
+			pathString += 'A 10 4 0 0 0 ' + x2 + ' ' + y;
+			return pathString;
+		};
+
+		svg.append('g').attr('class', 'sublinks')
+			.selectAll('path')
+			.data(subLinks).enter()
+			.append('path')
+			.attr('d', subLinksArcGenerator);
 	}
 
 	charter.init = function(dataset) {
@@ -126,7 +150,7 @@
 			});
 		});
 		// Create moderator links
-		var s1, s2, m1, m2, shared;
+		var s1, s2, m1, m2, r1, r2, shared;
 		for (var i = 0; i < moderators.length; i++) {
 			m1 = moderators[i];
 			s1 = d3.set(m1.values.map(function(v) { return v.subreddit; }));
@@ -140,9 +164,26 @@
 				}
 			}
 		}
+		// Create sublinks
+		for (var i = 0; i < subreddits.length; i++) {
+			r1 = subreddits[i];
+			s1 = d3.set(r1.values.map(function(v) { return v.name; }));
+			s1.remove('AutoModerator');
+			for (var j = i+1; j < subreddits.length; j++) {
+				r2 = subreddits[j];
+				s2 = d3.set(r2.values.map(function(v) { return v.name; }));
+				shared = [];
+				s1.forEach(function(sub) { if (s2.has(sub)) shared.push(sub); });
+				if (shared.length > 0) {
+					subLinks.push({'r1': r1.key, 'r2': r2.key, 'mods': shared});
+				}
+			}
+		}
+		console.log(subLinks);
 		setScaleParams();
 		drawLinks();
 		drawModLinks();
+		drawSubLinks();
 		drawModerators();
 		drawSubreddits();
 	}
