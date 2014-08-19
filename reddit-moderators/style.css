@@ -1,3 +1,8 @@
 svg g.links line {
 	stroke: #444;
 }
+
+svg g.modlinks path {
+	fill: none;
+	stroke: #444;
+}

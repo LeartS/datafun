@@ -27,7 +27,7 @@
 	var moderators = null;
 	var subreddits = null;
 	var links = []; // moderator - subreddit links
-	var moderatorsMatrix = [];
+	var modLinks = []; // moderator - moderator links
 	var subredditsMatrix = [];
 	var userScale = d3.scale.ordinal().rangePoints([0, width]);
 	var subredditScale = d3.scale.ordinal().rangePoints([0, width]);
@@ -84,6 +84,30 @@
 			});
 	}
 
+	function drawModLinks() {
+		var modLinksArcGenerator = function(modLink) {
+			var x1 = userScale(modLink.m1);
+			var x2 = userScale(modLink.m2);
+			var y = modLineY;
+			var pathString = ""
+			pathString += 'M ' + x1 + ' ' + y + ' ';
+			// rx 10, ry 6 is an hack: the x radius is too small for any pair of
+			// points. Therefore, according to
+			// http://www.w3.org/TR/SVG/implnote.html#ArcOutOfRangeParameters
+			// the ellipse will be scaled up uniformly until big enough.
+			// This assures all ellipses will have the same eccentricity without
+			// the need to calculate rx and ry from the points coordinates.
+			pathString += 'A 10 6 0 0 1 ' + x2 + ' ' + y;
+			return pathString;
+		};
+
+		svg.append('g').attr('class', 'modlinks')
+			.selectAll('path')
+			.data(modLinks).enter()
+			.append('path')
+			.attr('d', modLinksArcGenerator);
+	}
+
 	charter.init = function(dataset) {
 		moderators = d3.nest()
 			.key(function(d) { return d.name; })
@@ -101,21 +125,24 @@
 				links.push({'moderator': d.key, 'subreddit': dd.subreddit});
 			});
 		});
-		// Create moderators matrix
-		var submoderators = [];
-		var s1, s2;
-		moderators.forEach(function(m1, i) {
-			moderatorsMatrix[i] = [];
+		// Create moderator links
+		var s1, s2, m1, m2, shared;
+		for (var i = 0; i < moderators.length; i++) {
+			m1 = moderators[i];
 			s1 = d3.set(m1.values.map(function(v) { return v.subreddit; }));
-			moderators.forEach(function(m2, j) {
-				var shared = d3.set([]);
+			for (var j = i+1; j < moderators.length; j++) {
+				m2 = moderators[j];
 				s2 = d3.set(m2.values.map(function(v) { return v.subreddit; }));
-				s1.forEach(function(v) { if (s2.has(v)) shared.add(v); });
-				moderatorsMatrix[i][j] = shared;
-			});
-		});
+				shared = [];
+				s1.forEach(function(sub) { if (s2.has(sub)) shared.push(sub); });
+				if (shared.length > 0) {
+					modLinks.push({'m1': m1.key, 'm2': m2.key, 'subs': shared});
+				}
+			}
+		}
 		setScaleParams();
 		drawLinks();
+		drawModLinks();
 		drawModerators();
 		drawSubreddits();
 	}
